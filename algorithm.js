@@ -31,11 +31,11 @@ function makeSchedule(input, schedule, powerAvailable, devicesSorted, consumedEn
     // find a place for devices with max duration
     devicesSorted.forEach((device, i) => {
         if (device.duration == 24) {
-            let bestHourSequence = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable)
+            let bestPlace = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable)
 
-            if (bestHourSequence !== null) {
+            if (bestPlace !== null) {
                 // Push device in schedule
-                for (let j = bestHourSequence; j < bestHourSequence + device.duration; j++) {
+                for (let j = bestPlace; j < bestPlace + device.duration; j++) {
                     schedule[j % 24].devices.push(device.id);
                 }
             } else {
@@ -44,11 +44,11 @@ function makeSchedule(input, schedule, powerAvailable, devicesSorted, consumedEn
             }
             del.push(i);
         } else if (device.duration == 14 && device.mode == 'day') {
-            let bestHourSequence = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable)
+            let bestPlace = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable)
 
-            if (bestHourSequence !== null) {
+            if (bestPlace !== null) {
                 // Push device in schedule
-                for (let j = bestHourSequence; j < bestHourSequence + device.duration; j++) {
+                for (let j = bestPlace; j < bestPlace + device.duration; j++) {
                     // console.warn(i);
                     schedule[j % 24].devices.push(device.id);
                 }
@@ -58,11 +58,11 @@ function makeSchedule(input, schedule, powerAvailable, devicesSorted, consumedEn
             }
             del.push(i);
         } else if (device.duration == 10 && device.mode == 'night') {
-            let bestHourSequence = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable)
+            let bestPlace = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable)
 
-            if (bestHourSequence !== null) {
+            if (bestPlace !== null) {
                 // Push device in schedule
-                for (let j = bestHourSequence; j < bestHourSequence + device.duration; j++) {
+                for (let j = bestPlace; j < bestPlace + device.duration; j++) {
                     schedule[j % 24].devices.push(device.id);
                 }
             } else {
@@ -79,11 +79,11 @@ function makeSchedule(input, schedule, powerAvailable, devicesSorted, consumedEn
             return;
         }
 
-        let bestHourSequence = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable);
+        let bestPlace = findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailable);
 
-        if (bestHourSequence !== null) {
+        if (bestPlace !== null) {
             // Push device in schedule
-            for (let j = bestHourSequence; j < bestHourSequence + device.duration; j++) {
+            for (let j = bestPlace; j < bestPlace + device.duration; j++) {
                 schedule[j % 24].devices.push(device.id);
             }
         } else {
@@ -112,18 +112,18 @@ function findBestPlace(schedule, device, hourRates, consumedEnergy, powerAvailab
 
     for (let i = startHour; i < endHour; i++) {
         let powerFlag = false;
-        let hourSequenceCost = 0;
+        let placeCost = 0;
         for (let j = 0; j < device.duration; j++) {
             if (!isEnoughPower((i + j + offsetHour) % 24, device, powerAvailable)) {
                 powerFlag = true;
             } else {
-                hourSequenceCost += hourRates[(i + j + offsetHour) % 24];
+                placeCost += hourRates[(i + j + offsetHour) % 24];
             }
         }
         if (powerFlag) continue;
 
-        if (hourSequenceCost < bestCost) {
-            bestCost = hourSequenceCost;
+        if (placeCost < bestCost) {
+            bestCost = placeCost;
             bestPlace = (i + offsetHour) % 24;
         }
     }
@@ -155,7 +155,7 @@ function isEnoughPower(i, device, powerAvailable) {
 function makeOutput(input) {
 
     let consumedEnergy = {},
-        schedule = [],
+        scheduleArray = [],
         powerAvailable = [];
 
     // sort by power descending
@@ -168,8 +168,20 @@ function makeOutput(input) {
     consumedEnergy.value = 0;
     consumedEnergy.devices = {};
 
-    schedule = makeSchedule(input, schedule, powerAvailable, devicesSorted, consumedEnergy, hourRates);
+    scheduleArray = makeSchedule(input, scheduleArray, powerAvailable, devicesSorted, consumedEnergy, hourRates);
     consumedEnergy.value = parseFloat(consumedEnergy.value.toFixed(3));
+
+    // from array to object
+    let schedule = scheduleArray.reduce(function(acc, cur, i) {
+        acc[i] = cur;
+        return acc;
+    }, {});
+
+    for (var key in schedule) {
+        if (schedule.hasOwnProperty(key)) {
+            schedule[key] = schedule[key].devices;
+        }
+    }
 
     let output = {
         schedule,
