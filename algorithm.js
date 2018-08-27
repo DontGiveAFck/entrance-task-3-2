@@ -63,7 +63,6 @@ function makeSchedule(input, schedule, powerAvailable, devicesSorted, consumedEn
             if (bestHourSequence !== null) {
                 // Push device in schedule
                 for (let j = bestHourSequence; j < bestHourSequence + device.duration; j++) {
-                    // console.warn(i);
                     schedule[j % 24].devices.push(device.id);
                 }
             } else {
