@@ -188,5 +188,5 @@ function makeOutput(input) {
         consumedEnergy
     }
 
-    return output;
+    return JSON.stringify(output);
 }
