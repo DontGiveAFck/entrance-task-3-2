@@ -154,6 +154,7 @@ function isEnoughPower(i, device, powerAvailable) {
 
 function makeOutput(input) {
 
+    input = JSON.parse(input);
     let consumedEnergy = {},
         scheduleArray = [],
         powerAvailable = [];
@@ -177,7 +178,7 @@ function makeOutput(input) {
         return acc;
     }, {});
 
-    for (var key in schedule) {
+    for (let key in schedule) {
         if (schedule.hasOwnProperty(key)) {
             schedule[key] = schedule[key].devices;
         }
